@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard.php
+Disallow: /book.php
+Disallow: /config/
+Disallow: /includes/
+Sitemap: http://localhost/epicevents/sitemap.php
