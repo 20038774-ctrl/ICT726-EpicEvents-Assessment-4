@@ -1,6 +1,6 @@
 # EpicEvents — ICT726 Assessment 4
 
-A secure, data-driven event management website built with PHP 8, MySQL 8, HTML5, CSS3 and vanilla JavaScript. This project extends the submitted Assessment 3 static site into a complete dynamic application.
+A secure, data-driven event management website built with PHP 8, MySQL 8, HTML5, CSS3 and vanilla JavaScript. This project extends the Assessment 3 static site into a complete dynamic application.
 
 ## Quick setup with XAMPP or MAMP
 
@@ -13,26 +13,26 @@ A secure, data-driven event management website built with PHP 8, MySQL 8, HTML5,
 
 For MAMP, the usual MySQL port is `8889` and the default password may be `root`. Update only the corresponding values in `config/config.php`.
 
-## Demonstration accounts
+## Administrator setup
 
-Fixed passwords are intentionally not published. Register two accounts through the website: one member account and one administrator candidate. In phpMyAdmin, promote only the chosen administrator account with:
+Fixed passwords are intentionally not published. Register a standard account through the website, then promote the chosen administrator account in phpMyAdmin:
 
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'your-admin-email@example.com';
 ```
 
-Replace the example address with the email you registered. Log out and back in to refresh the session role. This setup demonstrates secure runtime password hashing without exposing reusable credentials in the repository.
+Replace the example address with the registered email. Log out and back in to refresh the session role. This approach preserves secure runtime password hashing without exposing reusable credentials in the repository.
 
-## Key demonstration flow
+## Feature walkthrough
 
 1. Browse and search event records loaded dynamically from MySQL.
-2. Register a new member; show invalid and valid form states.
-3. Log in, reserve tickets and review/cancel the booking in the member dashboard.
-4. Log in as administrator; create/edit/archive an event, permanently delete an eligible draft, and update booking/enquiry statuses.
-5. Attempt to open `/admin/` as a member to demonstrate server-side role enforcement.
-6. Show the privacy notice, keyboard focus, mobile navigation, unique metadata and Event JSON-LD.
+2. Register a member account and sign in securely.
+3. Reserve tickets and review or cancel the booking from the member dashboard.
+4. Use an administrator account to create, edit, archive or delete eligible events and manage booking and enquiry statuses.
+5. Open `/admin/` as a member to verify server-side role enforcement.
+6. Review the responsive navigation, keyboard focus, privacy notice, metadata and Event JSON-LD.
 
-## Structure
+## Project structure
 
 | Path | Purpose |
 |---|---|
@@ -40,19 +40,13 @@ Replace the example address with the email you registered. Log out and back in t
 | `admin/` | Role-protected event, booking and enquiry management |
 | `database/schema.sql` | MySQL schema, relationships, indexes and sample data |
 | `assets/js/app.js` | Mobile navigation, accessible client validation and confirmations |
-| `docs/` | Testing and presentation guides; identified submission records remain in the Moodle package |
+| `docs/` | Project presentation guide |
 | `legacy_static/` | Original Assessment 3 files retained for comparison |
 
-## Security notes
+## Security
 
-All write operations use POST and CSRF tokens. SQL uses PDO prepared statements, passwords use `password_hash()`/`password_verify()` with rehash-on-login, login regenerates the session identifier, sessions use strict mode and expire after inactivity, output is HTML encoded, and administrator routes call `require_admin()` on the server. Database checks reinforce core numeric rules. Event deletion is transactional and refuses published events or records with booking history. Errors are logged without revealing database details to visitors.
+All write operations use POST and CSRF tokens. SQL uses PDO prepared statements, passwords use `password_hash()` and `password_verify()` with rehash-on-login, login regenerates the session identifier, sessions use strict mode and expire after inactivity, and dynamic output is HTML encoded. Administrator routes enforce role checks on the server. Database constraints reinforce numeric rules, while transactional event deletion rejects published events and records with booking history. Errors are logged without exposing database details to visitors.
 
-## Submission checklist
+## Accessibility and SEO
 
-- Replace the two teammate placeholders in `docs/TEAM_CONTRIBUTIONS.md` with truthful details.
-- Add the hosted-site URL to the private assessment report if the optional deployment is completed.
-- Change `base_url` and the sitemap URL after hosting.
-- Run every item in `docs/TESTING_CHECKLIST.md` and add screenshots as evidence.
-- Export/download the final Git repository and upload the ZIP to Moodle.
-
-The Git history begins with the original Assessment 3 baseline and records the dynamic conversion. The identified Word report and contribution record are intentionally retained in the Moodle ZIP rather than published in this public repository. Every teammate should now make their own meaningful commits from their own Git account; do not manufacture contribution evidence.
+The interface uses semantic HTML, keyboard-accessible controls, visible focus styles, responsive layouts, accessible validation feedback and a skip link. Search-engine support includes page-specific metadata, canonical URLs, `robots.txt`, a generated sitemap and structured Event data.
