@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Media Gallery | EpicEvents</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header" role="banner">
+        <div class="logo-container">
+            <h1>Epic<span>Events</span></h1>
+        </div>
+        <nav class="main-nav" aria-label="Main Navigation">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="events.html">Browse Events</a></li>
+                <li><a href="media.html" class="active" aria-current="page">Gallery</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="gallery-wrapper">
+        <section class="gallery-intro">
+            <h2>Interactive Media Showcase</h2>
+            <p>Click on any gallery card thumbnail below to open a larger version in our accessible modal viewer overlay.</p>
+        </section>
+
+        <!-- Gallery Structure Layer -->
+        <section class="thumbnail-matrix" aria-label="Visual Gallery Assets">
+            <!-- Asset 1 -->
+            <div class="thumbnail-card">
+                <button class="gallery-trigger" aria-haspopup="dialog" data-target="img01" aria-label="View large version of Vivid Sydney display">
+                    <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&auto=format&fit=crop&q=60" alt="Vivid Sydney festival outdoor stadium lighting and crowd tracking visuals" class="gallery-thumb">
+                    <div class="thumb-overlay"><span>Enlarge Layout</span></div>
+                </button>
+            </div>
+            <!-- Asset 2 -->
+            <div class="thumbnail-card">
+                <button class="gallery-trigger" aria-haspopup="dialog" data-target="img02" aria-label="View large version of Hunter Valley event">
+                    <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=60" alt="Hunter Valley long tables set outdoor for fine dining vineyard festival events" class="gallery-thumb">
+                    <div class="thumb-overlay"><span>Enlarge Layout</span></div>
+                </button>
+            </div>
+            <!-- Asset 3 -->
+            <div class="thumbnail-card">
+                <button class="gallery-trigger" aria-haspopup="dialog" data-target="img03" aria-label="View large version of Byron Bay stage">
+                    <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?w=500&auto=format&fit=crop&q=60" alt="Large festival stage lighting shining into audience eyes during evening outdoor concert" class="gallery-thumb">
+                    <div class="thumb-overlay"><span>Enlarge Layout</span></div>
+                </button>
+            </div>
+        </section>
+
+        <!-- Modern Accessible Modal Layer Window Component -->
+        <div id="lightbox-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+            <button id="modal-close-btn" class="close-trigger" aria-label="Close interactive modal view window">&times;</button>
+            <div class="modal-content-container">
+                <img id="modal-expanded-img" src="" alt="Enlarged visualization state view">
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 EpicEvents Management System. All Rights Reserved. Built for ICT726.</p>
+    </footer>
+
+    <script src="gallery.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Inquiries & Contact | EpicEvents</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header" role="banner">
+        <div class="logo-container">
+            <h1>Epic<span>Events</span></h1>
+        </div>
+        <nav class="main-nav" aria-label="Main Navigation">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="events.html">Browse Events</a></li>
+                <li><a href="media.html">Gallery</a></li>
+                <li><a href="contact.html" class="active" aria-current="page">Contact Us</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="contact-wrapper">
+        <section class="contact-header-block">
+            <h2>Connect With Our NSW Coordinators</h2>
+            <p>Fill out the fields below. Our client validation handler will process your inquiry entry immediately.</p>
+            <div class="direct-metadata">
+                <p>Email: <a href="mailto:inquire@epicevents.com.au">inquire@epicevents.com.au</a> | Social channels: @EpicEventsNSW</p>
+            </div>
+        </section>
+
+        <!-- Form Architecture Block -->
+        <section class="form-container-card">
+            <!-- Explicitly using native actions instead of PHP backend engines -->
+            <form id="inquiry-form" class="semantic-form" novalidate>
+                
+                <!-- Client Name Entry Field -->
+                <div class="input-control-group">
+                    <label for="client-name">Full Name:</label>
+                    <input type="text" id="client-name" name="client-name" placeholder="e.g. Jane Doe" required>
+                    <span id="name-error" class="validation-message-alert" aria-live="polite"></span>
+                </div>
+
+                <!-- Client Email Entry Field -->
+                <div class="input-control-group">
+                    <label for="client-email">Email Address:</label>
+                    <input type="email" id="client-email" name="client-email" placeholder="e.g. jane@domain.com" required>
+                    <span id="email-error" class="validation-message-alert" aria-live="polite"></span>
+                </div>
+
+                <!-- Inquiry Message Input Field -->
+                <div class="input-control-group">
+                    <label for="client-message">Inquiry Details:</label>
+                    <textarea id="client-message" name="client-message" rows="5" placeholder="Outline your event objectives..." required></textarea>
+                    <span id="message-error" class="validation-message-alert" aria-live="polite"></span>
+                </div>
+
+                <!-- Submission Trigger Element -->
+                <button type="submit" id="submit-action-trigger" class="form-submit-btn">Send Inquiry Matrix</button>
+
+                <!-- General Success Feedback Display Box -->
+                <div id="global-success-pane" class="form-success-alert-hidden" aria-live="assertive"></div>
+            </form>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 EpicEvents Management System. All Rights Reserved. Built for ICT726.</p>
+    </footer>
+
+    <script src="validation.js"></script>
+</body>
+</html>
