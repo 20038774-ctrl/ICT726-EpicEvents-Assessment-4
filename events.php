@@ -10,8 +10,11 @@ $categories = db()->query("SELECT DISTINCT category FROM events WHERE status = '
 $sql = "SELECT e.*, (e.capacity - COALESCE(SUM(CASE WHEN b.status IN ('pending','confirmed') THEN b.quantity ELSE 0 END), 0)) AS places_left FROM events e LEFT JOIN bookings b ON b.event_id = e.id WHERE e.status = 'published' AND e.event_date >= CURDATE()";
 $params = [];
 if ($search !== '') {
-    $sql .= ' AND (e.title LIKE :search OR e.description LIKE :search OR e.location LIKE :search)';
-    $params['search'] = '%' . $search . '%';
+    $sql .= ' AND (e.title LIKE :title_search OR e.description LIKE :description_search OR e.location LIKE :location_search)';
+    $searchTerm = '%' . $search . '%';
+    $params['title_search'] = $searchTerm;
+    $params['description_search'] = $searchTerm;
+    $params['location_search'] = $searchTerm;
 }
 if ($category !== '') {
     $sql .= ' AND e.category = :category';
