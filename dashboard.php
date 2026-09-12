@@ -9,6 +9,8 @@ if (is_post() && ($_POST['action'] ?? '') === 'cancel') {
         $stmt = db()->prepare("UPDATE bookings SET status='cancelled', updated_at=CURRENT_TIMESTAMP WHERE id=:id AND user_id=:user_id AND status IN ('pending','confirmed')");
         $stmt->execute(['id' => $bookingId, 'user_id' => current_user()['id']]);
         flash($stmt->rowCount() ? 'success' : 'error', $stmt->rowCount() ? 'Your booking has been cancelled.' : 'That booking could not be cancelled.');
+    } else {
+        flash('error', 'Invalid booking.');
     }
     redirect('dashboard.php');
 }

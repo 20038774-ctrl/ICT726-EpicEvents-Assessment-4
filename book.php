@@ -21,9 +21,12 @@ if (is_post()) {
         $pdo = db();
         try {
             $pdo->beginTransaction();
-            $lockStmt = $pdo->prepare('SELECT capacity FROM events WHERE id=:id FOR UPDATE');
+            // Lock the event row and re-check its state inside the transaction.
+            $lockStmt = $pdo->prepare("SELECT capacity FROM events WHERE id=:id AND status='published' AND event_date >= CURDATE() FOR UPDATE");
             $lockStmt->execute(['id' => $eventId]);
-            $capacity = (int) $lockStmt->fetchColumn();
+            $lockedCapacity = $lockStmt->fetchColumn();
+            if ($lockedCapacity === false) throw new RuntimeException('unavailable');
+            $capacity = (int) $lockedCapacity;
             $bookedStmt = $pdo->prepare("SELECT COALESCE(SUM(quantity),0) FROM bookings WHERE event_id=:id AND status IN ('pending','confirmed')");
             $bookedStmt->execute(['id' => $eventId]);
             $placesLeft = $capacity - (int) $bookedStmt->fetchColumn();
@@ -37,6 +40,7 @@ if (is_post()) {
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             if ($exception instanceof RuntimeException && $exception->getMessage() === 'capacity') $errors['quantity'] = 'Availability changed while you were booking. Please choose fewer tickets.';
+            elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'unavailable') $errors['form'] = 'This event is no longer available for booking.';
             else { error_log($exception->getMessage()); $errors['form'] = 'The booking could not be completed. Please try again.'; }
         }
     }
@@ -52,8 +56,8 @@ require __DIR__ . '/includes/header.php';
         <?= error_summary($errors) ?>
         <form method="post" action="<?= e(url('book.php')) ?>" data-validate novalidate>
             <?= csrf_field() ?><input type="hidden" name="event_id" value="<?= (int) $eventId ?>">
-            <div class="field"><label for="quantity">Number of tickets</label><input id="quantity" name="quantity" type="number" min="1" max="<?= min(10, max(1, (int) $event['places_left'])) ?>" value="<?= old('quantity', '1') ?>" required aria-describedby="quantity-error" <?= isset($errors['quantity']) ? 'aria-invalid="true"' : '' ?>><?php if (isset($errors['quantity'])): ?><span class="field-error" id="quantity-error"><?= e($errors['quantity']) ?></span><?php endif; ?></div>
-            <div class="field"><label for="accessibility_notes">Accessibility or support needs <span>(optional)</span></label><textarea id="accessibility_notes" name="accessibility_notes" rows="4" maxlength="500" placeholder="Tell us what would help you participate comfortably." aria-describedby="accessibility-notes-error" <?= isset($errors['accessibility_notes']) ? 'aria-invalid="true"' : '' ?>><?= old('accessibility_notes') ?></textarea><?php if (isset($errors['accessibility_notes'])): ?><span class="field-error" id="accessibility-notes-error"><?= e($errors['accessibility_notes']) ?></span><?php endif; ?></div>
+            <div class="field"><label for="quantity">Number of tickets</label><input id="quantity" name="quantity" type="number" min="1" max="<?= min(10, max(1, (int) $event['places_left'])) ?>" value="<?= old('quantity', '1') ?>" required<?= field_error_attributes('quantity', $errors) ?>><?php if (isset($errors['quantity'])): ?><span class="field-error" id="quantity-error"><?= e($errors['quantity']) ?></span><?php endif; ?></div>
+            <div class="field"><label for="accessibility_notes">Accessibility or support needs <span>(optional)</span></label><textarea id="accessibility_notes" name="accessibility_notes" rows="4" maxlength="500" placeholder="Tell us what would help you participate comfortably."<?= field_error_attributes('accessibility_notes', $errors) ?>><?= old('accessibility_notes') ?></textarea><?php if (isset($errors['accessibility_notes'])): ?><span class="field-error" id="accessibility_notes-error"><?= e($errors['accessibility_notes']) ?></span><?php endif; ?></div>
             <p class="field-help">No payment is processed in this educational prototype. By booking, you agree that event staff may use your details to administer this reservation.</p>
             <button class="button button-primary button-full" type="submit">Confirm reservation</button>
         </form>

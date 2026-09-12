@@ -25,11 +25,9 @@ if (is_post()) {
             unset($user['password_hash'], $user['is_active']);
             $_SESSION['user'] = $user;
             $_SESSION['login_attempts'] = [];
-            $destination = $_SESSION['intended_url'] ?? url('dashboard.php');
+            $destination = safe_local_target((string) ($_SESSION['intended_url'] ?? ''))
+                ?? url('dashboard.php');
             unset($_SESSION['intended_url']);
-            if (!is_string($destination) || preg_match('/[\r\n]/', $destination) || str_starts_with($destination, '//')) {
-                $destination = url('dashboard.php');
-            }
             header('Location: ' . $destination);
             exit;
         }

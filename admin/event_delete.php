@@ -22,9 +22,14 @@ try {
     flash('success', 'Event permanently deleted.');
 } catch (Throwable $exception) {
     if ($pdo->inTransaction()) $pdo->rollBack();
-    $message = $exception instanceof RuntimeException && $exception->getMessage() === 'bookings'
-        ? 'Events with booking history cannot be deleted; archive them instead.'
-        : 'Only draft or archived events can be permanently deleted.';
+    if ($exception instanceof RuntimeException && $exception->getMessage() === 'bookings') {
+        $message = 'Events with booking history cannot be deleted; archive them instead.';
+    } elseif ($exception instanceof RuntimeException && $exception->getMessage() === 'state') {
+        $message = 'Only draft or archived events can be permanently deleted.';
+    } else {
+        error_log('Event deletion failed: ' . $exception->getMessage());
+        $message = 'The event could not be deleted. Please try again.';
+    }
     flash('error', $message);
 }
 redirect('admin/index.php');

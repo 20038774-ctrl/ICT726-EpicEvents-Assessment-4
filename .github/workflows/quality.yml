@@ -1,0 +1,82 @@
+name: Quality assurance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: epicevents
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      APP_ENV: production
+      APP_URL: http://127.0.0.1:8080
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: epicevents
+      DB_USER: root
+      DB_PASS: root
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Lint PHP and JavaScript
+        run: |
+          find . -type f -name "*.php" -not -path "./legacy_static/*" -print0 | xargs -0 -n1 php -l
+          node --check assets/js/app.js
+          python3 -m py_compile tests/integration.py
+
+      - name: Import and validate database
+        env:
+          MYSQL_PWD: root
+        run: |
+          mysql --protocol=TCP -h 127.0.0.1 -uroot < database/schema.sql
+          test "$(mysql --protocol=TCP -h 127.0.0.1 -uroot -Nse "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='epicevents';")" = "4"
+
+      - name: Run static audit
+        run: node tests/static_audit.mjs
+
+      - name: Run end-to-end integration audit
+        run: |
+          php -S 127.0.0.1:8080 -t . > /tmp/epicevents-php.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8080/ > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          python3 tests/integration.py

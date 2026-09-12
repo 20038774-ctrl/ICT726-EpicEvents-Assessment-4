@@ -1,6 +1,6 @@
 # EpicEvents — ICT726 Assessment 4
 
-A secure, data-driven event management website built with PHP 8, MySQL 8, HTML5, CSS3 and vanilla JavaScript. This project extends the Assessment 3 static site into a complete dynamic application.
+A secure, data-driven event management website built with PHP 8, MySQL 8, HTML5, CSS3 and vanilla JavaScript. This project extends the submitted Assessment 3 static site into a complete dynamic application.
 
 ## Quick setup with XAMPP or MAMP
 
@@ -26,13 +26,13 @@ Replace the example address with the registered email. Log out and back in to re
 ## Feature walkthrough
 
 1. Browse and search event records loaded dynamically from MySQL.
-2. Register a member account and sign in securely.
-3. Reserve tickets and review or cancel the booking from the member dashboard.
-4. Use an administrator account to create, edit, archive or delete eligible events and manage booking and enquiry statuses.
-5. Open `/admin/` as a member to verify server-side role enforcement.
-6. Review the responsive navigation, keyboard focus, privacy notice, metadata and Event JSON-LD.
+2. Register a new member; show invalid and valid form states.
+3. Log in, reserve tickets and review/cancel the booking in the member dashboard.
+4. Log in as administrator; create/edit/archive an event, permanently delete an eligible draft, and update booking/enquiry statuses.
+5. Attempt to open `/admin/` as a member to demonstrate server-side role enforcement.
+6. Show the privacy notice, keyboard focus, mobile navigation, unique metadata and Event JSON-LD.
 
-## Project structure
+## Structure
 
 | Path | Purpose |
 |---|---|
@@ -40,13 +40,20 @@ Replace the example address with the registered email. Log out and back in to re
 | `admin/` | Role-protected event, booking and enquiry management |
 | `database/schema.sql` | MySQL schema, relationships, indexes and sample data |
 | `assets/js/app.js` | Mobile navigation, accessible client validation and confirmations |
-| `docs/` | Project presentation guide |
+| `tests/` | Automated static and end-to-end application checks |
+| `docs/` | Presentation guidance for the Week 12 demonstration |
 | `legacy_static/` | Original Assessment 3 files retained for comparison |
 
-## Security
+## Security notes
 
-All write operations use POST and CSRF tokens. SQL uses PDO prepared statements, passwords use `password_hash()` and `password_verify()` with rehash-on-login, login regenerates the session identifier, sessions use strict mode and expire after inactivity, and dynamic output is HTML encoded. Administrator routes enforce role checks on the server. Database constraints reinforce numeric rules, while transactional event deletion rejects published events and records with booking history. Errors are logged without exposing database details to visitors.
+All write operations use POST and CSRF tokens. SQL uses PDO prepared statements, passwords use `password_hash()`/`password_verify()` with rehash-on-login, login regenerates the session identifier, sessions use strict mode and expire after inactivity, output is HTML encoded, and administrator routes call `require_admin()` on the server. Database checks reinforce core numeric rules. Event deletion is transactional and refuses published events or records with booking history. Errors are logged without revealing database details to visitors.
 
-## Accessibility and SEO
+## Quality assurance
 
-The interface uses semantic HTML, keyboard-accessible controls, visible focus styles, responsive layouts, accessible validation feedback and a skip link. Search-engine support includes page-specific metadata, canonical URLs, `robots.txt`, a generated sitemap and structured Event data.
+Run the dependency-free static audit with:
+
+```bash
+node tests/static_audit.mjs
+```
+
+The repository's GitHub Actions workflow additionally provisions PHP 8.3 and MySQL 8, lints every PHP file, imports the schema, starts the application and exercises public, member and administrator workflows end to end.

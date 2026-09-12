@@ -5,6 +5,7 @@ $config = require __DIR__ . '/../config/config.php';
 
 ini_set('display_errors', $config['environment'] === 'development' ? '1' : '0');
 error_reporting(E_ALL);
+date_default_timezone_set('Australia/Sydney');
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
@@ -24,7 +25,9 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 if (isset($_SESSION['last_activity']) && time() - (int) $_SESSION['last_activity'] > 1800) {
     session_unset();
     session_destroy();
+    session_id('');
     session_start();
+    session_regenerate_id(true);
 }
 $_SESSION['last_activity'] = time();
 
@@ -32,6 +35,8 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header("Permissions-Policy: camera=(), microphone=(), geolocation=()");
+header('Cross-Origin-Opener-Policy: same-origin');
+header('X-Permitted-Cross-Domain-Policies: none');
 
 function db(): PDO
 {
@@ -73,6 +78,36 @@ function redirect(string $path): never
 {
     header('Location: ' . url($path));
     exit;
+}
+
+/**
+ * Accept only a path inside this application for post-login redirects.
+ */
+function safe_local_target(string $candidate): ?string
+{
+    global $config;
+
+    if ($candidate === '' || preg_match('/[\\x00-\\x1F\\x7F\\\\]/', $candidate)) {
+        return null;
+    }
+
+    $parts = parse_url($candidate);
+    if ($parts === false || isset($parts['scheme']) || isset($parts['host'])) {
+        return null;
+    }
+
+    $path = $parts['path'] ?? '';
+    $basePath = rtrim((string) (parse_url($config['base_url'], PHP_URL_PATH) ?: '/'), '/');
+    $basePath = $basePath === '' ? '/' : $basePath;
+    $insideBase = $basePath === '/'
+        ? str_starts_with($path, '/')
+        : ($path === $basePath || str_starts_with($path, $basePath . '/'));
+
+    if (!$insideBase || str_starts_with($path, '//')) {
+        return null;
+    }
+
+    return $path . (isset($parts['query']) ? '?' . $parts['query'] : '');
 }
 
 function is_post(): bool
@@ -122,9 +157,7 @@ function require_login(): void
     if (!is_logged_in()) {
         flash('error', 'Please log in to continue.');
         $candidate = (string) ($_SERVER['REQUEST_URI'] ?? '');
-        $_SESSION['intended_url'] = str_starts_with($candidate, '/') && !str_starts_with($candidate, '//')
-            ? $candidate
-            : url('dashboard.php');
+        $_SESSION['intended_url'] = safe_local_target($candidate);
         redirect('login.php');
     }
     header('Cache-Control: no-store, private');
@@ -137,7 +170,7 @@ function require_admin(): void
         http_response_code(403);
         $robots = 'noindex, nofollow';
         require __DIR__ . '/header.php';
-        echo '<main class="page-shell narrow"><section class="empty-state"><p class="eyebrow">403</p><h1>Access denied</h1><p>This area is available to administrators only.</p><a class="button" href="' . e(url('dashboard.php')) . '">Return to dashboard</a></section></main>';
+        echo '<main id="main-content" class="page-shell narrow"><section class="empty-state"><p class="eyebrow">403</p><h1>Access denied</h1><p>This area is available to administrators only.</p><a class="button" href="' . e(url('dashboard.php')) . '">Return to dashboard</a></section></main>';
         require __DIR__ . '/footer.php';
         exit;
     }
@@ -154,6 +187,26 @@ function error_summary(array $errors): string
             : '<li><a href="#' . e((string) $field) . '">' . $label . '</a></li>';
     }
     return '<div class="error-summary" role="alert" tabindex="-1"><h2>Please correct the following</h2><ul>' . $items . '</ul></div>';
+}
+
+/**
+ * Build accessible relationships between a field, its help text and its error.
+ */
+function field_error_attributes(string $field, array $errors, array $describedBy = []): string
+{
+    $hasError = array_key_exists($field, $errors);
+    if ($hasError) {
+        $describedBy[] = $field . '-error';
+    }
+
+    $attributes = '';
+    if ($describedBy) {
+        $attributes .= ' aria-describedby="' . e(implode(' ', array_unique($describedBy))) . '"';
+    }
+    if ($hasError) {
+        $attributes .= ' aria-invalid="true"';
+    }
+    return $attributes;
 }
 
 function flash(string $type, string $message): void
@@ -177,10 +230,4 @@ function valid_date(string $value): bool
 {
     $date = DateTime::createFromFormat('Y-m-d', $value);
     return $date !== false && $date->format('Y-m-d') === $value;
-}
-
-function client_ip_hash(): string
-{
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    return hash('sha256', $ip . 'epicevents-contact-salt');
 }
