@@ -2,6 +2,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.querySelector('.nav-toggle');
   const nav = document.querySelector('#primary-nav');
 
+  const appScript = document.querySelector('script[src*="assets/js/app.js"]');
+  if (appScript) {
+    const fallbackImage = new URL('../images/event-placeholder.svg', appScript.src).href;
+    document.querySelectorAll('.event-card img, .event-cover').forEach((image) => {
+      const showFallback = () => {
+        if (image.src !== fallbackImage) image.src = fallbackImage;
+      };
+
+      image.addEventListener('error', showFallback);
+      if (image.complete && image.naturalWidth === 0) showFallback();
+    });
+  }
+
   if (toggle && nav) {
     const closeMenu = () => {
       toggle.setAttribute('aria-expanded', 'false');
