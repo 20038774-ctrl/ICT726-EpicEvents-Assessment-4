@@ -121,6 +121,7 @@ check(bootstrap.includes("session_regenerate_id(true)"), 'Session identifiers mu
 check(bootstrap.includes("'httponly' => true") && bootstrap.includes("'samesite' => 'Lax'"), 'Secure cookie attributes are incomplete');
 check(bootstrap.includes('hash_equals(csrf_token(), $submitted)'), 'Constant-time CSRF comparison is missing');
 check(bootstrap.includes('safe_local_target'), 'Post-login redirect validation is missing');
+check(!read('events.php').includes('LIKE :search OR'), 'Search query reuses a named PDO placeholder');
 
 for (const table of ['users', 'events', 'bookings', 'enquiries']) {
   check(new RegExp(`CREATE TABLE ${table}\\b`, 'i').test(schema), `Missing database table: ${table}`);
